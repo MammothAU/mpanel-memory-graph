@@ -1,0 +1,1 @@
+*/5 * * * * nobody /usr/local/bin/mpanel-memory-graph

@@ -1,0 +1,50 @@
+#!/bin/sh
+# MammothVPS mPanel Memory Graph
+# Read More: http://www.mammothvps.com.au/kb/troubleshooting/mpanel-memory-graph
+
+export PATH=/sbin:$PATH
+
+GetMemoryUsedBytes() {
+    sysctl -a | awk '{ v[$1] = $2 } END { print (v["vm.stats.vm.v_page_count:"] - (v["vm.stats.vm.v_cache_count:"] + v["vm.stats.vm.v_free_count:"])) * v["hw.pagesize:"] - v["vfs.bufspace:"] }'
+}
+
+GetDiskUsedMegabytes() {
+    df -m / | awk '$6 == "/" { print $3 }'
+}
+
+GetMacAddress() {
+    ifconfig "$1" | awk '$1 == "ether" { gsub(":","",$2); print $2 }'
+}
+
+GetStatisticsHost() {
+    DefaultStatisticsHost="110.232.115.5"
+    AddressFile="/etc/mpanel-memory-graph"
+
+    remoteHost="$DefaultStatisticsHost"
+    if [ -f "$AddressFile" ] ; then
+        remoteHost="`cat $AddressFile`"
+    fi
+
+    echo "$remoteHost"
+}
+
+GetStatisticsPort() {
+    echo 21000
+}
+
+SendUsageToStatisticsHost() {
+    data="$@"
+    echo -n "$data" | nc -w 0 -u "`GetStatisticsHost`" "`GetStatisticsPort`"
+}
+
+SendUpdate() {
+    SendUsageToStatisticsHost `GetMemoryUsedBytes` `GetDiskUsedMegabytes` `GetMacAddress vtnet0`
+}
+
+SleepRandomDelay() {
+    MaxSleepDelay="240"
+    sleep "` jot -r 1 0 $MaxSleepDelay `"
+}
+
+SleepRandomDelay
+SendUpdate
