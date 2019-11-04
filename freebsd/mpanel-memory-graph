@@ -5,7 +5,7 @@
 export PATH=/sbin:$PATH
 
 GetMemoryUsedBytes() {
-    sysctl -a | awk '{ v[$1] = $2 } END { print (v["vm.stats.vm.v_page_count:"] - (v["vm.stats.vm.v_cache_count:"] + v["vm.stats.vm.v_free_count:"])) * v["hw.pagesize:"] - v["vfs.bufspace:"] }'
+    sysctl -a | awk '{ v[$1] = $2 } END { print (v["vm.stats.vm.v_active_count:"] + v["vm.stats.vm.v_wire_count:"]) * v["hw.pagesize:"] }'
 }
 
 GetDiskUsedMegabytes() {
